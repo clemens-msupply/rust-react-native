@@ -1,0 +1,22 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "server"
+crate-type = ["staticlib", "cdylib"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2.99"
+jni = { version = "0.19.0", optional = true, default-features = false}
+actix-web = { version = "3.3.2", default-features = false }
+diesel = { version = "1.4.7", default-features = false, features = ["sqlite", "r2d2"] }
+r2d2 = "0.8.9"
+serde = "1.0.127"
+libsqlite3-sys = { version = "0.9.1", features = ["bundled"] }
+diesel_migrations = "1.4.0"
+
+[features]
+default = ["jni"]

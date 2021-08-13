@@ -1,0 +1,4 @@
+CREATE TABLE testdata (
+  id SERIAL PRIMARY KEY,
+  value TEXT NOT NULL
+)
