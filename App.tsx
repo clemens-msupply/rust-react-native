@@ -1,5 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View, NativeModules, Button} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  NativeModules,
+  Button,
+  ScrollView,
+} from 'react-native';
 const {MobileAppBridge} = NativeModules;
 
 import {doBenchmarks, BenchmarkResult, RemoteDBInterface} from './benchmark';
@@ -8,6 +15,7 @@ type AppState = {
   hello?: string;
   res?: string;
   isBenchmarking?: boolean;
+  benchmarkTime?: number;
   benchmarkResults: BenchmarkResult[];
 };
 
@@ -29,7 +37,9 @@ async function serverRequest(): Promise<string> {
 }
 
 export const App = (): JSX.Element => {
-  const [state, setState] = useState<AppState>({benchmarkResults: []});
+  const [state, setState] = useState<AppState>({
+    benchmarkResults: [],
+  });
 
   const displayHelloWorld = async () => {
     try {
@@ -51,9 +61,8 @@ export const App = (): JSX.Element => {
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>rust says: {state.hello}</Text>
-
       <Button
-        title="Request"
+        title="Test Request"
         onPress={async () => {
           const response = await serverRequest();
           setState({
@@ -62,7 +71,7 @@ export const App = (): JSX.Element => {
           });
         }}
       />
-
+      <Text style={styles.welcome}>response: {state.res}</Text>
       <Button
         disabled={state.isBenchmarking}
         title="Benchmark"
@@ -71,23 +80,33 @@ export const App = (): JSX.Element => {
           setState({
             ...state,
             isBenchmarking: true,
+            benchmarkResults: [],
           });
+          const start = Date.now();
           const response = await doBenchmarks(
             `http://127.0.0.1:${serverPort}`,
             dbPath,
           );
           setState({
             ...state,
-            benchmarkResults: response,
             isBenchmarking: false,
+            benchmarkTime: Date.now() - start,
+            benchmarkResults: response,
           });
         }}
       />
-
-      {state.benchmarkResults.map((result, i) => {
-        return <Text key={i}>{JSON.stringify(result)}</Text>;
-      })}
-      <Text style={styles.welcome}>response: {state.res}</Text>
+      {!state.isBenchmarking &&
+      state.benchmarkTime &&
+      state.benchmarkTime > 0 ? (
+        <Text style={styles.welcome}>
+          Total benchmark time: {state.benchmarkTime}ms
+        </Text>
+      ) : undefined}
+      <ScrollView>
+        {state.benchmarkResults.map((result, i) => {
+          return <Text key={i}>{JSON.stringify(result)}</Text>;
+        })}
+      </ScrollView>
     </View>
   );
 };
@@ -95,7 +114,6 @@ export const App = (): JSX.Element => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
