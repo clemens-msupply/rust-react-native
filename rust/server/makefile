@@ -3,6 +3,8 @@ ARCHS_ANDROID = aarch64-linux-android armv7-linux-androideabi i686-linux-android
 LIB=libsigner.a
 PWD=`pwd`
 
+# Some dependencies need env vars to find CC and AR:
+
 CC_aarch64-linux-android="$(PWD)/../../NDK/arm64/bin/aarch64-linux-android-clang"
 AR_aarch64-linux-android="$(PWD)/../../NDK/arm64/bin/aarch64-linux-android-ar"
 
