@@ -71,6 +71,10 @@ mod tests {
 
     #[test]
     fn test_start_server() {
+        std::env::set_var("RUST_LOG", "info");
+        std::env::set_var("RUST_BACKTRACE", "1");
+        env_logger::init();
+
         start_server(8082);
 
         thread::sleep(time::Duration::from_secs(60 * 1000));

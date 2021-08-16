@@ -26,14 +26,23 @@ pub fn init_db(db_path: &str) -> Pool<ConnectionManager<SqliteConnection>> {
     diesel::delete(testdata).execute(&connection).unwrap();
 
     /*
-        diesel::insert_into(testdata)
-            .values(&(id.eq(1), value.eq("test")))
-            .execute(&connection)
-            .unwrap();
-        diesel::insert_into(testdata)
-            .values(&(id.eq(2), value.eq("test2")))
-            .execute(&connection)
-            .unwrap();
+    use rand::distributions::Alphanumeric;
+    use rand::{thread_rng, Rng};
+
+
+    let mut data: Vec<TestData> = Vec::new();
+    for n in 0..1_000 {
+        let rand_string: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(10000)
+            .map(char::from)
+            .collect();
+        data.push(TestData {
+            id: n,
+            value: rand_string,
+        });
+    }
+    post_values(&connection, &data).unwrap();
     */
     pool
 }
