@@ -40,8 +40,13 @@ pub async fn handle_get_values(data: web::Data<Arc<Mutex<AppData>>>) -> HttpResp
     match &data.db_pool {
         Some(pool) => {
             let connection = pool.get().unwrap();
-            let values = get_values(&connection);
-            HttpResponse::Ok().json(values)
+            let result = get_values(&connection);
+            match result {
+                Ok(values) => HttpResponse::Ok().json(values),
+                Err(_) => HttpResponse::BadRequest().json(ErrorResponse {
+                    message: "Can't read values".to_string(),
+                }),
+            }
         }
         None => HttpResponse::BadRequest().json(ErrorResponse {
             message: "DB not initialized".to_string(),
@@ -58,8 +63,13 @@ pub async fn handle_post_values(
     match &data.db_pool {
         Some(pool) => {
             let connection = pool.get().unwrap();
-            let values = post_values(&connection, &body);
-            HttpResponse::Ok().json(values)
+            let result = post_values(&connection, &body);
+            match result {
+                Ok(_) => HttpResponse::Ok().finish(),
+                Err(_) => HttpResponse::BadRequest().json(ErrorResponse {
+                    message: "Can't write values".to_string(),
+                }),
+            }
         }
         None => HttpResponse::BadRequest().json(ErrorResponse {
             message: "DB not initialized".to_string(),

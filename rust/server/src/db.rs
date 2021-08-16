@@ -1,5 +1,7 @@
 extern crate diesel;
 
+use std::time::Instant;
+
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
 use r2d2::Pool;
@@ -36,18 +38,25 @@ pub fn init_db(db_path: &str) -> Pool<ConnectionManager<SqliteConnection>> {
     pool
 }
 
-pub fn get_values(connection: &SqliteConnection) -> Vec<TestData> {
+pub fn get_values(connection: &SqliteConnection) -> QueryResult<Vec<TestData>> {
+    let now = Instant::now();
     use super::schema::testdata::dsl::*;
-    let values = testdata.load::<TestData>(connection).unwrap();
+    let values = testdata.load::<TestData>(connection);
+
+    println!("#Get {}ms", now.elapsed().as_millis());
     return values;
 }
 
-pub fn post_values(connection: &SqliteConnection, data: &Vec<TestData>) {
+pub fn post_values(connection: &SqliteConnection, data: &Vec<TestData>) -> QueryResult<usize> {
+    let now = Instant::now();
+
     use super::schema::testdata::dsl::*;
-    diesel::insert_into(testdata)
+    let result = diesel::insert_into(testdata)
         .values(data)
-        .execute(connection)
-        .unwrap();
+        .execute(connection);
+
+    println!("#Post {}ms", now.elapsed().as_millis());
+    return result;
 }
 
 #[cfg(test)]
