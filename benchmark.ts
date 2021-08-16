@@ -49,6 +49,7 @@ export interface BenchmarkResult {
   numberOfEntries: number;
   writeTime: number;
   readTime: number;
+  touchTime: number;
 }
 
 let rowIdCounter = 10;
@@ -65,6 +66,16 @@ async function benchmark(
     };
   });
 
+  const touchValues = (d: TestData[]) => {
+    let currentId = 0;
+    let currentValue = '';
+    d.forEach(it => {
+      currentId = it.id;
+      currentValue = it.value;
+    });
+    return currentId + currentValue;
+  };
+
   await dbInterface.init();
 
   const startWrite = Date.now();
@@ -72,8 +83,12 @@ async function benchmark(
   const writeTime = Date.now() - startWrite;
 
   const startRead = Date.now();
-  await dbInterface.getValues();
+  const values = await dbInterface.getValues();
   const readTime = Date.now() - startRead;
+
+  const startTouchTime = Date.now();
+  touchValues(values);
+  const touchTime = Date.now() - startTouchTime;
 
   return {
     type,
@@ -81,6 +96,7 @@ async function benchmark(
     numberOfEntries,
     writeTime,
     readTime,
+    touchTime,
   };
 }
 
@@ -139,14 +155,22 @@ export async function doBenchmarks(
       key: `${it.type}-size${it.dataSize}-n${it.numberOfEntries}`,
       writeTime: it.writeTime,
       readTime: it.readTime,
+      touchTime: it.touchTime,
     }))
-    .reduce<Map<string, {writeTime: number; readTime: number}>>((prev, cur) => {
+    .reduce<
+      Map<string, {writeTime: number; readTime: number; touchTime: number}>
+    >((prev, cur) => {
       const existing = prev.get(cur.key);
       if (existing) {
         existing.readTime = (existing.readTime + cur.readTime) / 2;
         existing.writeTime = (existing.writeTime + cur.writeTime) / 2;
+        existing.touchTime = (existing.touchTime + cur.touchTime) / 2;
       } else {
-        prev.set(cur.key, {writeTime: cur.writeTime, readTime: cur.readTime});
+        prev.set(cur.key, {
+          writeTime: cur.writeTime,
+          readTime: cur.readTime,
+          touchTime: cur.touchTime,
+        });
       }
       return prev;
     }, new Map());
@@ -164,7 +188,12 @@ export async function doBenchmarks(
 
   console.log(
     Array.from(results2.entries())
-      .map(([key, value]) => `${key}, ${value.writeTime}, ${value.readTime}`)
+      .map(
+        ([key, value]) =>
+          `${key}, ${value.writeTime}, ${value.readTime + value.touchTime}, ${
+            value.readTime
+          }, ${value.touchTime},`,
+      )
       .join('\n'),
   );
   return result;
