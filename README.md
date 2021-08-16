@@ -16,7 +16,7 @@ Make sure you have all Android related env set.
 
 For example, in .bash_profile:
 
-```
+```bash
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/tools
@@ -33,3 +33,12 @@ run
 > ./setup-ndk.sh
 
 [also see](https://mozilla.github.io/firefox-browser-architecture/experiments/2017-09-21-rust-on-android.html)
+
+# Notes
+
+To allow http request to localhost the following option needs to be enabled in the AndroidManifest.xml
+
+```xml
+ <application
+      android:usesCleartextTraffic="true"
+```
